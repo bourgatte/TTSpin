@@ -1,0 +1,38 @@
+#PBS -u vcherepa
+#! /bin/bash
+if [ "${1}"  == "--help" ]; then
+     	    echo "  "
+     	    echo "  "
+     	    echo "---------------------------------------------------------------------------------------------------  "
+	    echo "Options for running this configuration file:"
+	    echo "--help                    Prints this message"
+	    echo "Job name                  Parse executable name to be submitted as a parameter"
+	    echo "<run time>                --short; --medium; --long; Default: --short"
+     	    echo "  "
+else
+que="cms_local_short"
+for var in $@ ; do
+    	if [  "${var}" == "--short"  ]; then
+            que="cms_local_short"	 
+	fi		 
+        if [  "${var}" == "--medium" ]; then
+            	que="sbg_local_mdm"	 
+        fi	
+        if [  "${var}" == "--long"   ]; then
+            	que="cms_local"	 
+        fi		 
+       done
+export HOME=$(pwd)
+jName=${1}
+var=${1}
+output="out_${1}.o"
+error="err_${1}.e"
+echo "Print out system variables:    "
+echo "Working dir: $HOME"
+echo "Job name:  ${jName} "
+echo "que type:  ${que} "
+echo "output:    ${output}    "
+echo "error:     ${error}    "
+qsub -q ${que}  -o ${output} -e ${error} -N ${jName} -v outfile=${jName}   qsub_submit.sh 
+fi
+#-v FOO="hello",BAR="world"
