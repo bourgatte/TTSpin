@@ -133,10 +133,6 @@ for($l=0;$l<$numArgs; $l++){
 
 
 	system(sprintf("cp UserCodes/Makefile.shared $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-	system(sprintf("cp UserCodes/MultiplyNumbers.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-	system(sprintf("cp UserCodes/MultiplyNumbers.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-	system(sprintf("cp UserCodes/AddNumbers.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-	system(sprintf("cp UserCodes/AddNumbers.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/main.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/a1Helper.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/a1Helper.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
@@ -148,6 +144,14 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cp UserCodes/TauDecaysHelper.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/PolarimetricA1.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/PolarimetricA1.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
+
+	system(sprintf("cp UserCodes/SCalculator.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
+	system(sprintf("cp UserCodes/SCalculator.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
+
+	system(sprintf("cp UserCodes/TauTauSpiner.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
+	system(sprintf("cp UserCodes/TauTauSpiner.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
+
+
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes/; make  -f Makefile.shared;"));
 #	system(sprintf("cp Makefile  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
 #	system(sprintf("cp poltaumain_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
@@ -169,8 +173,6 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cp transspin_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
 	system(sprintf("cp transspin_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
 
-	system(sprintf("cp A1KinematicStudy.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
-	system(sprintf("cp A1KinematicStudy.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
 
 
 
