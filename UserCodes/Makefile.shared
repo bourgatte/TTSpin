@@ -31,6 +31,7 @@ HDRS          = 	TauDecaysHelper.h \
 	        a1Helper \
 		rhoHelper \
 		PolarimetricA1 \
+		SCalculator \
 		TauPolInterface
 	         
 
@@ -40,6 +41,7 @@ SRCS          = 	a1Helper.cc \
 		PolarimetricA1.cc \
 		TauDecaysHelper.cc \
 		TauPolInterface.cc \
+		SCalculator.cc \
 		main.cc
 
 OBJS1          = $(SRCS:.cc=.o) 
