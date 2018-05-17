@@ -261,6 +261,8 @@ int main(int argc,char **argv){
   TH1F *pvecx2_plus= new TH1F("pvecx2_plus","#pi^{+}",50,-1.1,1.1);
   TH1F *pvecx2_minus= new TH1F("pvecx2_minus","#pi^{-} ",50,-1.1,1.1);
 
+  TH1F *phiang= new TH1F("phiang","#phi ",50,-3.14,3.14);
+
 
 
 
@@ -515,8 +517,6 @@ int main(int argc,char **argv){
     TLorentzVector a1ss2pi(0,0,0,0);
     TLorentzVector a1(0,0,0,0);
 
-
-
     
 
     vector<TLorentzVector> tauandprod1,tauandprod2, tauandprodMuon2;
@@ -644,10 +644,6 @@ int main(int argc,char **argv){
       tauandprod1=particles;
     }
     
-
-
-
-
      //--------------------  tau+
      if(JAK2==2){
        vector<TLorentzVector> tauandprodmu2;
@@ -701,41 +697,76 @@ int main(int argc,char **argv){
     
     if(JAK1 ==3 && JAK2 == 3){
 
+       TLorentzVector tau1Lab = tauandprod1.at(0);
+       TLorentzVector tau2Lab = tauandprod2.at(0);
+       TLorentzVector ttRF = tau1Lab + tau2Lab;
+       TVector3 Rot1 = tau1Lab.Vect();
+
+
+
+       TLorentzVector pi1 = tauandprod1.at(1);
+       TLorentzVector pi2 = tauandprod2.at(1);
+
+       TLorentzVector pi1R1 = pi1;
+       TLorentzVector pi2R1 = pi2;
+       TLorentzVector tau1LabR1 = tau1Lab;
+       TLorentzVector tau2LabR1 = tau2Lab;
+
+       tau1LabR1.SetVect(Rotate(tau1LabR1.Vect(),Rot1));
+       tau2LabR1.SetVect(Rotate(tau2LabR1.Vect(),Rot1));
+
+       pi2R1.SetVect(Rotate(pi2R1.Vect(),Rot1));
+       pi1R1.SetVect(Rotate(pi1R1.Vect(),Rot1));
+
+
+
+
+       vector<TLorentzVector> tauandprodtau1;
+       vector<TLorentzVector> tauandprodtau2;
+
+
+       tauandprodtau1.push_back(tau1LabR1);
+       tauandprodtau1.push_back(pi1R1);
+       tauandprodtau2.push_back(tau2LabR1);
+       tauandprodtau2.push_back(pi2R1);
+       TVector3 v1 = pi1R1.Cross(tauandprodtau1);
+       TVector3 v2 = pi1R2.Cross(tauandprodtau2);
+
+
+
        SCalculator testpolpi1;
-       testpolpi1.Configure(tauandprod1);
-	
+       testpolpi1.Configure(tauandprodtau1);
        TVector3 polpi1 = testpolpi1.pvec();
-       // polpi.Print();
-
-
+ 
        pvecz1_plus->Fill(polpi1.Z(),HelWeightPlus);
        pvecz1_minus->Fill(polpi1.Z(),HelWeightMinus);
-
        pvecy1_plus->Fill(polpi1.Y(),HelWeightPlus);
        pvecy1_minus->Fill(polpi1.Y(),HelWeightMinus);
-
        pvecx1_plus->Fill(polpi1.X(),HelWeightPlus);
        pvecx1_minus->Fill(polpi1.X(),HelWeightMinus);
 
 
        SCalculator testpolpi2;
-       testpolpi2.Configure(tauandprod2);
-	
+       testpolpi2.Configure(tauandprodtau2);
        TVector3 polpi2 = testpolpi2.pvec();
-       // polpi.Print();
+ 
+
+
+
+
 
 
        pvecz2_plus->Fill(polpi2.Z(),HelWeightPlus);
        pvecz2_minus->Fill(polpi2.Z(),HelWeightMinus);
-
        pvecy2_plus->Fill(polpi2.Y(),HelWeightPlus);
        pvecy2_minus->Fill(polpi2.Y(),HelWeightMinus);
-
        pvecx2_plus->Fill(polpi2.X(),HelWeightPlus);
        pvecx2_minus->Fill(polpi2.X(),HelWeightMinus);
 
 
-
+       // std::cout<<"  TT "<< polpi1.X()*polpi2.X() + polpi1.Y()*polpi2.Y()  <<std::endl;
+       // std::cout<<"  TN "<< polpi1.X()*polpi2.Y() + polpi1.Y()*polpi2.X()  <<std::endl;
+       phiang->Fill(acos(v1*v2));
     }
     
      
