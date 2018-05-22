@@ -1,13 +1,14 @@
 /**
- * Example of use of tauola C++ interfate. Pythia events are
- * generated with a stable tau. Taus are subseuently decay via
- * tauola, plots of polatization observables for tau-> mununu and tau-> pinu
- * are produced.
+ * Example of use of tauola C++ interface. Pythia events are
+ * generated with a stable tau. Taus are subsequently decay via
+ * tauola.
  *
+ * @author Nadia Davidson
+ * @date 17 June 2008
+ */
 
- */ 
-     
 #include "Tauola/Log.h"
+#include "Tauola/Plots.h"
 #include "Tauola/Tauola.h"
 #include "Tauola/TauolaHepMCEvent.h"
 #include "TFile.h"
@@ -16,23 +17,16 @@
 #include "TF1.h"
 #include "TLorentzVector.h"
 #include "TVector3.h"
-#include "UserCodes/a1Helper.h"
-#include "UserCodes/TauDecaysHelper.h"
-#include "UserCodes/TauPolInterface.h"
-#include "UserCodes/PolarimetricA1.h"
-#include "UserCodes/SCalculator.h"
-#include "TLorentzVector.h"
 #include "TComplex.h"
 #include "TMatrixT.h"
 #include "TVectorT.h"
 #include "TMatrixTSym.h"
 #include "TMath.h"
-#include "UserCodes/SCalculator.h"
 //pythia header files
 #ifdef PYTHIA8180_OR_LATER
-#include "Pythia8/Pythia.h" 
+#include "Pythia8/Pythia.h"
 #include "Pythia8/Pythia8ToHepMC.h"
-#else 
+#else
 #include "Pythia.h"
 #include "HepMCInterface.h"
 #endif
@@ -41,134 +35,43 @@
 #include "Generate.h"
 #include "HepMCEvent.H"
 #include "Setup.H"
- 
-#include "tauola_print_parameters.h"
+
 using namespace std;
 using namespace Pythia8; 
 using namespace Tauolapp;
 
-int NumberOfEvents =1000; 
-bool ApplyCut(false);
-double pt_cut = 30;  // GeV - approximately correspond to CMS trigger
-double eta_cut = 10; // - very large value, all events pass - at the moment switched off at all
-int EventsToCheck=5;
+unsigned int NumberOfEvents = 1000;
+unsigned int EventsToCheck  = 20;
 
 // elementary test of HepMC typically executed before
 // detector simulation based on http://home.fnal.gov/~mrenna/HCPSS/HCPSShepmc.html
 // similar test was performed in Fortran
 // we perform it before and after Tauola (for the first several events)
-
-
-
 void checkMomentumConservationInEvent(HepMC::GenEvent *evt)
 {
- 	cout<<"List of stable particles: "<<endl;
+	//cout<<"List of stable particles: "<<endl;
 
 	double px=0.0,py=0.0,pz=0.0,e=0.0;
-
-	int barcodetau1vertex(0),barcodetau2vertex(0);
-	for ( HepMC::GenEvent::particle_const_iterator p = evt->particles_begin();  p != evt->particles_end(); ++p )
-	  {
-	    if( (*p)->status() == 1 )
-	      {
-		HepMC::FourVector m = (*p)->momentum();
-		HepMC::GenVertex *productProductionvertex = (*p)->production_vertex();
-		px+=m.px();
-		py+=m.py();
-		pz+=m.pz();
-		e +=m.e();
-	      }
-	  }
-	cout.precision(6);
-	cout.setf(ios_base::floatfield);
-}
-TMatrixT<double> convertToMatrix(TVectorT<double> V){
-  TMatrixT<double> M(V.GetNrows(),1);
-  for(int i=0; i < M.GetNrows(); i++){
-    M(i,0)=V(i);
-  } return M;
+	
+	for ( HepMC::GenEvent::particle_const_iterator p = evt->particles_begin();
+	      p != evt->particles_end(); ++p )
+	{
+		if( (*p)->status() == 1 )
+		{
+			HepMC::FourVector m = (*p)->momentum();
+			px+=m.px();
+			py+=m.py();
+			pz+=m.pz();
+			e +=m.e();
+			//(*p)->print();
+		}
+	}
+  cout.precision(6);
+  cout.setf(ios_base::floatfield);
+	cout<<endl<<"Vector Sum: "<<px<<" "<<py<<" "<<pz<<" "<<e<<endl;
 }
 
 
-TLorentzVector 
-BoostR(TLorentzVector pB, TLorentzVector frame){
-   TMatrixT<double> transform(4,4);
-   TMatrixT<double> result(4,1);
-   TVectorT<double> vec(4); 
-   TVector3 b;
-   if(frame.Vect().Mag()==0){ std::cout<<"RH Boost is not set, perfrom calculation in the Lab Frame   "<<std::endl; return pB;}
-    if(frame.E()==0){ std::cout<<" Caution: Please check that you perform boost correctly!  " <<std::endl; return pB;} 
-   else   b=frame.Vect()*(1/frame.E());
-   vec(0)  = pB.E();    vec(1)  = pB.Px();
-   vec(2)  = pB.Py();   vec(3)  = pB.Pz();
-   double gamma  = 1/sqrt( 1 - b.Mag2());
-   transform(0,0)=gamma; transform(0,1) =- gamma*b.X() ;  transform(0,2) =  - gamma*b.Y();  transform(0,3) = - gamma*b.Z(); 
-   transform(1,0)=-gamma*b.X(); transform(1,1) =(1+ (gamma-1)*b.X()*b.X()/b.Mag2()) ;  transform(1,2) = ((gamma-1)*b.X()*b.Y()/b.Mag2());  transform(1,3) = ((gamma-1)*b.X()*b.Z()/b.Mag2());
-   transform(2,0)=-gamma*b.Y(); transform(2,1) = ((gamma-1)*b.Y()*b.X()/b.Mag2());  transform(2,2) = (1 + (gamma-1)*b.Y()*b.Y()/b.Mag2());  transform(2,3) =  ((gamma-1)*b.Y()*b.Z()/b.Mag2()); 
-   transform(3,0)=-gamma*b.Z(); transform(3,1) =((gamma-1)*b.Z()*b.X()/b.Mag2()) ;  transform(3,2) = ((gamma-1)*b.Z()*b.Y()/b.Mag2());  transform(3,3) = (1 + (gamma-1)*b.Z()*b.Z()/b.Mag2()); 
-   result=transform*convertToMatrix(vec);
-   return TLorentzVector(result(1,0), result(2,0) ,result(3,0), result(0,0));
-}
-
-TVector3
-Rotate(TVector3 LVec, TVector3 Rot){
-  TVector3 vec = LVec;
-  vec.RotateZ(0.5*TMath::Pi() - Rot.Phi());  // not 0.5, to avoid warnings about 0 pT
-  vec.RotateX(Rot.Theta());
-  return vec;
-}
-
-
-void redMinus(TauolaParticle *minus) // this is JAK1
-{
-  //   
-  // this method can be used to redefine branching ratios in decay of tau-
-  // either generally, or specific to  tau- with pointer *minus.
-  //
-  // Pointer *minus can be used to define properties of decays for taus
-  // at specific point(s) in the event tree. Example: 
-  // vector<TauolaParticle*> x=minus->getMothers();
-  // and define special versions depending on x. 
-  //
-  // Any combination of methods
-  // Tauola::setTauBr(int mode, double br);
-  //Tauola::setTaukle(double bra1, double brk0, double brk0b,double brks);
-   Tauola::setTaukle(1, 0,0,0);
-  // can be called here 
-
-
-   for(unsigned int dec=1; dec <23; dec++){
-      double br =0.0; 
-      //      if(dec ==2|| dec ==3|| dec ==4|| dec ==5) br=0.25;
-      if(dec ==3) br=0.99;
-      Tauola::setTauBr(dec, br);
-   }
-
-}
-
-void redPlus(TauolaParticle *plus) // this is JAK2
-{
-  //   
-  // this method can be used to redefine branching ratios in decay of tau+
-  // either generally, or specific to  tau+ with pointer *plus.
-  //
-  // Pointer *plus can be used to define properties of decays for tau
-  // at specific point(s) in the event tree. Example: 
-  // vector<TauolaParticle*> x=plus->getMothers();
-  // and define special versions depending on x. 
-  //
-  // Any combination of methods
-  // Tauola::setTauBr(int mode, double br);
-  //Tauola::setTaukle(double bra1, double brk0, double brk0b,double brks);
-   Tauola::setTaukle(1, 0,0,0);
-  // can be called here 
-  for(unsigned int dec=1; dec <23; dec++){
-     double br =0.0;
-     //      if(dec ==2|| dec ==3|| dec ==4|| dec ==5) br=0.25;
-     if(dec ==3) br=0.99;
-     Tauola::setTauBr(dec, br);
-   }
-}
 
 void SortPions(std::vector<HepMC::GenParticle > pionsvec)
 {
@@ -226,55 +129,69 @@ void SortPions(std::vector<HepMC::GenParticle > pionsvec)
     pionsvec.push_back(ss1);
     pionsvec.push_back(ss2);
 }
+TMatrixT<double> convertToMatrix(TVectorT<double> V){
+  TMatrixT<double> M(V.GetNrows(),1);
+  for(int i=0; i < M.GetNrows(); i++){
+    M(i,0)=V(i);
+  } return M;
+}
+
+
+TLorentzVector 
+BoostR(TLorentzVector pB, TLorentzVector frame){
+   TMatrixT<double> transform(4,4);
+   TMatrixT<double> result(4,1);
+   TVectorT<double> vec(4); 
+   TVector3 b;
+   if(frame.Vect().Mag()==0){ std::cout<<"RH Boost is not set, perfrom calculation in the Lab Frame   "<<std::endl; return pB;}
+    if(frame.E()==0){ std::cout<<" Caution: Please check that you perform boost correctly!  " <<std::endl; return pB;} 
+   else   b=frame.Vect()*(1/frame.E());
+   vec(0)  = pB.E();    vec(1)  = pB.Px();
+   vec(2)  = pB.Py();   vec(3)  = pB.Pz();
+   double gamma  = 1/sqrt( 1 - b.Mag2());
+   transform(0,0)=gamma; transform(0,1) =- gamma*b.X() ;  transform(0,2) =  - gamma*b.Y();  transform(0,3) = - gamma*b.Z(); 
+   transform(1,0)=-gamma*b.X(); transform(1,1) =(1+ (gamma-1)*b.X()*b.X()/b.Mag2()) ;  transform(1,2) = ((gamma-1)*b.X()*b.Y()/b.Mag2());  transform(1,3) = ((gamma-1)*b.X()*b.Z()/b.Mag2());
+   transform(2,0)=-gamma*b.Y(); transform(2,1) = ((gamma-1)*b.Y()*b.X()/b.Mag2());  transform(2,2) = (1 + (gamma-1)*b.Y()*b.Y()/b.Mag2());  transform(2,3) =  ((gamma-1)*b.Y()*b.Z()/b.Mag2()); 
+   transform(3,0)=-gamma*b.Z(); transform(3,1) =((gamma-1)*b.Z()*b.X()/b.Mag2()) ;  transform(3,2) = ((gamma-1)*b.Z()*b.Y()/b.Mag2());  transform(3,3) = (1 + (gamma-1)*b.Z()*b.Z()/b.Mag2()); 
+   result=transform*convertToMatrix(vec);
+   return TLorentzVector(result(1,0), result(2,0) ,result(3,0), result(0,0));
+}
+
+TVector3
+Rotate(TVector3 LVec, TVector3 Rot){
+  TVector3 vec = LVec;
+  vec.RotateZ(0.5*TMath::Pi() - Rot.Phi());  // not 0.5, to avoid warnings about 0 pT
+  vec.RotateX(Rot.Theta());
+  return vec;
+}
 
 int main(int argc,char **argv){
 
+ 
+  TString FileName  = "TTSpin_plots.root";
+  TFile *file = new TFile(FileName,"RECREATE");
+  TH1F *phiang= new TH1F("phiang","#phi ",50,0,3.14);
+  // Program needs at least 4 parameters
+  if(argc<5)
+  {
+    cout<<endl<<"Usage: "<<argv[0]<<" <pythia_conf> <pythia_mode> <no_events> <tauola_mode> <mixing_angle>"<<endl;
+    cout<<endl<<"   eg. "<<argv[0]<<" pythia_H.conf 0 10000 4 0.7853"<<endl;
+    cout<<endl;
+    return -1;
+  }
+
   Log::SummaryAtExit();
 
-  // Initialization of pythia
+  // Initialisation of pythia
   Pythia pythia;
   Event& event = pythia.event;
-
-  TString path= (TString)std::getenv("PWD") +"/output/";
-  TString FileName  = path+"TauolaHelicity_" + TString(argv[1]) + ".root";
-  TFile *file = new TFile(FileName,"RECREATE");
-
-
-
-  TH1F *pvecz1_plus= new TH1F("pvecz1_plus","#pi^{+}",50,-1.1,1.1);
-  TH1F *pvecz1_minus= new TH1F("pvecz1_minus","#pi^{-} ",50,-1.1,1.1);
-
-  TH1F *pvecy1_plus= new TH1F("pvecy1_plus","#pi^{+}",50,-1.1,1.1);
-  TH1F *pvecy1_minus= new TH1F("pvecy1_minus","#pi^{-} ",50,-1.1,1.1);
-
-  TH1F *pvecx1_plus= new TH1F("pvecx1_plus","#pi^{+}",50,-1.1,1.1);
-  TH1F *pvecx1_minus= new TH1F("pvecx1_minus","#pi^{-} ",50,-1.1,1.1);
-
-
-
-  TH1F *pvecz2_plus= new TH1F("pvecz2_plus","#pi^{+}",50,-1.1,1.1);
-  TH1F *pvecz2_minus= new TH1F("pvecz2_minus","#pi^{-} ",50,-1.1,1.1);
-
-  TH1F *pvecy2_plus= new TH1F("pvecy2_plus","#pi^{+}",50,-1.1,1.1);
-  TH1F *pvecy2_minus= new TH1F("pvecy2_minus","#pi^{-} ",50,-1.1,1.1);
-
-  TH1F *pvecx2_plus= new TH1F("pvecx2_plus","#pi^{+}",50,-1.1,1.1);
-  TH1F *pvecx2_minus= new TH1F("pvecx2_minus","#pi^{-} ",50,-1.1,1.1);
-
-  TH1F *phiang= new TH1F("phiang","#phi ",50,-3.14,3.14);
-
-
-
-
-
-
+  
   // Pythia8 HepMC interface depends on Pythia8 version
 #ifdef PYTHIA8180_OR_LATER
   HepMC::Pythia8ToHepMC ToHepMC;
 #else
   HepMC::I_Pythia8 ToHepMC;
-#endif
-
+  // we keep it for backward compatibility
   //pythia.readString("HadronLevel:all = off");
   pythia.readString("HadronLevel:Hadronize = off");
   pythia.readString("SpaceShower:QEDshowerByL = off");
@@ -282,65 +199,64 @@ int main(int argc,char **argv){
   pythia.readString("PartonLevel:ISR = off");
   pythia.readString("PartonLevel:FSR = off");
 
-  // Tauola is currently set to undecay taus. Otherwise, uncomment this line.
-  // Uncommenting it will speed up the test significantly
-  //  pythia.particleData.readString("15:mayDecay = off");
+#endif
 
-  pythia.readString("WeakSingleBoson:ffbar2gmZ = on");
-  pythia.readString("23:onMode = off"); 
-  pythia.readString("23:onIfAny = 15");
-  //  pythia.readString("23:onIfMatch = 15 -15");
+  // Initial pythia configuration
+  pythia.particleData.readString("15:mayDecay = off");
 
-  pythia.init( 11, -11, 92.);          //electron positron collisions
+  /*
+    Read input parameters from console. List of parameters:
+    1. Pythia configuration filename
+    2. Are we using pp collisions? (If not - e+ e- collisions)
+    3. Number of events
+    4. Tauola decay mode (refer to documentation)
+    5. Higgs scalar-pseudoscalar mixing angle
 
-  // Set up Tauola
+    Example where all input parameters are used:
 
-  // Set Tauola decay mode (if needed)
-  //Tauola::setSameParticleDecayMode(2);     //19 and 22 contains K0 
-    //   Tauola::setOppositeParticleDecayMode(3); // 20 contains eta
+    ./taumain_pythia_example.exe pythia_H.conf 0 100000 4 0.7853
+      - use pythia_H.conf
+      - initialize using e+ e- collisions
+      - generate 100 000 events
+      - fix TAUOLA decay to channel 4 (RHO_MODE)
+      - Higgs scalar-pseudoscalar mixing angle set to 0.7853
+  */
 
-  // Set Higgs scalar-pseudoscalar mixing angle
-  //  Tauola::setHiggsScalarPseudoscalarMixingAngle(0.7853);
-  //  Tauola::setHiggsScalarPseudoscalarPDG(25);
+  // 1. Load pythia configuration file (argv[1], from console)
+  if(argc>1) pythia.readFile(argv[1]);
 
+  // // 2. Initialize pythia to pp or e+e- collisions (argv[2], from console)
+   if(atoi(argv[2])==1) pythia.init( -2212, -2212, 14000.0); // p_bar  p_bar  collisions
+   else                 pythia.init( 11, -11, 500);          // e+ e- collisions
+  //pythia.init( -2212, -2212, 14000.0);
+  // 3. Get number of events (argv[3], from console)
+  if(argc>3) NumberOfEvents=atoi(argv[3]);
+
+  // 4. Set Tauola decay mode (argv[4], from console)
+  if(argc>4)
+  {
+    Tauola::setSameParticleDecayMode(atoi(argv[4]));
+    Tauola::setOppositeParticleDecayMode(atoi(argv[4]));
+  }
+
+  // 5. Set Higgs scalar-pseudoscalar mixing angle (argv[5], from console)
+  if(argc>5)
+  {
+    Tauola::setHiggsScalarPseudoscalarMixingAngle(atof(argv[5]));
+    Tauola::setHiggsScalarPseudoscalarPDG(25);
+  }
+
+  Tauola::setRadiation(false); // turn off radiation in leptionic decays
   Tauola::initialize();
-  //  const char* str="hhu1";
-  std::cout<<"  "<< TMath::Hash(argv[1])<<std::endl;
-  std::cout<<" ---------------  "<< time(NULL)<<std::endl;
- 
-
-  //  Tauola::setSeed(time(NULL), 0, 0);
-  Tauola::setSeed(TMath::Hash(argv[1]), 0, 0);
-  tauola_print_parameters(); // Prints TAUOLA  parameters (residing inside its library): e.g. to test user interface
-
-  // Our default units are GEV and MM, that will be outcome  units after TAUOLA
-  // if HepMC unit variables  are correctly set. 
-  // with the following coice you can fix the units for final outcome:
-  //  Tauola::setUnits(Tauola::GEV,Tauola::MM); 
-  //  Tauola::setUnits(Tauola::MEV,Tauola::CM); 
-
-  // Other usefull settings:
-  //  Tauola::setEtaK0sPi(0,0,0);  // switches to decay eta K0_S and pi0 1/0 on/off. 
-  //  Tauola::setTauLifetime(0.0); //new tau lifetime in mm
-    Tauola::spin_correlation.setAll(true);
-
-    Log::LogDebug(true);
-
-      Tauola::setRedefineTauMinus(redMinus);  // activates execution of routine redMinus in TAUOLA interface
-      Tauola::setRedefineTauPlus(redPlus);    // activates execution of routine redPlus  in TAUOLA interface
-      // Tauola::setRedefineTauMinus(redPlus);  // activates execution of routine redMinus in TAUOLA interface
-      // Tauola::setRedefineTauPlus(redMinus);    // activates execution of routine redPlus  in TAUOLA interface
-
-
 
   MC_Initialize();
 
-  // Begin event loop. Generate event.
-  for (int iEvent = 0; iEvent < NumberOfEvents; ++iEvent){
-
-    if(iEvent%1000==0) Log::Info()<<"Event: "<<iEvent<<endl;
+  // Begin event loop
+  for(unsigned int iEvent = 0; iEvent < NumberOfEvents; ++iEvent)
+  {
+    if (iEvent%1000==0) Log::Info()<<"Event: "<<iEvent<<endl;
     if (!pythia.next()) continue;
-    //    std::cout<<"-------------- "<<std::endl;
+
     // Convert event record to HepMC
     HepMC::GenEvent * HepMCEvt = new HepMC::GenEvent();
 
@@ -360,10 +276,10 @@ int main(int argc,char **argv){
     // Run TAUOLA on the event
     TauolaHepMCEvent * t_event = new TauolaHepMCEvent(HepMCEvt);
 
-    // Since we let Pythia decay taus, we have to undecay them first.
-    t_event->undecayTaus();
+    // We do not let Pythia decay taus, so we don't have to undecay them
+    //t_event->undecayTaus();
     t_event->decayTaus();
-    delete t_event; 
+    delete t_event;
 
     if(iEvent<EventsToCheck)
     {
@@ -477,130 +393,13 @@ int main(int argc,char **argv){
 	  }
       }
     }
-
-    bool HelPlus=false;
-    bool HelMinus=false;
-    if(Tauola::getHelPlus() == 1 )HelMinus=true;
-    if(Tauola::getHelPlus() ==-1)HelPlus=true;
-
-    bool HelPlus2=false;
-    bool HelMinus2=false;
-    if(Tauola::getHelMinus() == 1 )HelMinus2=true;
-    if(Tauola::getHelMinus() ==-1)HelPlus2=true;
-
-
-    int HelWeightPlus = HelPlus;
-    int HelWeightMinus = HelMinus;
-    // int HelWeightPlus = 0;
-    // int HelWeightMinus = 0;
-
-
-    // std::cout<<"  two helicities  "<< HelMinus <<"  "<<HelPlus <<std::endl;
-    // std::cout<<"  s  "<< HelMinus2 <<"  "<<HelPlus2 <<std::endl;
-    int tauHelicity  = Tauola::getHelPlus();
-
-   
     TLorentzVector tau1(0,0,0,0);
-    TLorentzVector mu1(0,0,0,0);
-    TLorentzVector numu1(0,0,0,0);
-    TLorentzVector nutau1(0,0,0,0);
-    TLorentzVector nutau2(0,0,0,0);
-    TLorentzVector pi2(0,0,0,0);
-    TLorentzVector pi1(0,0,0,0);
     TLorentzVector tau2(0,0,0,0);
-
-    TLorentzVector rhopi2(0,0,0,0);
-    TLorentzVector rhopi02(0,0,0,0);
-
-    TLorentzVector a1ospi(0,0,0,0);
-    TLorentzVector a1ss1pi(0,0,0,0);
-    TLorentzVector a1ss2pi(0,0,0,0);
-    TLorentzVector a1(0,0,0,0);
-
-    
-
-    vector<TLorentzVector> tauandprod1,tauandprod2, tauandprodMuon2;
-    vector<TLorentzVector> tauandprodMuon1,tauandprodRho,tauandprodRho2,tauandprodA1;
+    vector<TLorentzVector> tauandprod1,tauandprod2;
     tau1.SetPxPyPzE(FirstTau->momentum().px(), FirstTau->momentum().py(), FirstTau->momentum().pz(), FirstTau->momentum().e());
     tau2.SetPxPyPzE(SecondTau->momentum().px(), SecondTau->momentum().py(), SecondTau->momentum().pz(), SecondTau->momentum().e());
 
-    bool passed1(true);
-    bool passed2(true);
-    if(ApplyCut){
-      passed1 = false;
-      passed2 = false;
-      if(JAK1==2){
 
-	for(std::vector<HepMC::GenParticle>::const_iterator a = FirstTauProducts.begin(); a!=FirstTauProducts.end(); ++a){
-	  if(abs(a->pdg_id())==13){
-	    TLorentzVector  prod(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );
-	    if(prod.Pt() > pt_cut ) passed1=true;
-	  }
-	}
-      }
-      if(JAK1==3){
-	for(std::vector<HepMC::GenParticle>::const_iterator a = FirstTauProducts.begin(); a!=FirstTauProducts.end(); ++a){
-	  if(abs(a->pdg_id())==211){
-	    TLorentzVector  prod(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );
-	    if(prod.Pt() > pt_cut ) passed1=true;
-	  }
-	}
-      }
-
-      if(JAK1==4){
-	TLorentzVector prod(0,0,0,0);
-	for(std::vector<HepMC::GenParticle>::const_iterator a = FirstTauProducts.begin(); a!=FirstTauProducts.end(); ++a){
-	  if(abs(a->pdg_id())==211){prod += TLorentzVector(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );}
-	  if(abs(a->pdg_id())==111){prod += TLorentzVector(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );}
-	}
-	if(prod.Pt() > pt_cut ) passed1=true;
-      }
-      
-      if(JAK1==5){
-	TLorentzVector prod(0,0,0,0);
-
-	prod+=TLorentzVector(A1Pions1.at(0).momentum().px(), A1Pions1.at(0).momentum().py(), A1Pions1.at(0).momentum().pz(), A1Pions1.at(0).momentum().e());
-	prod+=TLorentzVector(A1Pions1.at(1).momentum().px(), A1Pions1.at(1).momentum().py(), A1Pions1.at(1).momentum().pz(), A1Pions1.at(1).momentum().e());
-	prod+=TLorentzVector(A1Pions1.at(2).momentum().px(), A1Pions1.at(2).momentum().py(), A1Pions1.at(2).momentum().pz(), A1Pions1.at(2).momentum().e());
-	
-	if(prod.Pt() > pt_cut ) passed1=true;
-      }
-
-      if(JAK2==2){
-	for(std::vector<HepMC::GenParticle>::const_iterator a = SecondTauProducts.begin(); a!=SecondTauProducts.end(); ++a){
-	  if(abs(a->pdg_id())==13){
-	    TLorentzVector  prod(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );
-	    if(prod.Pt() > pt_cut) passed2=true;
-	  }
-	}
-      }
-
-      if(JAK2==3){
-	for(std::vector<HepMC::GenParticle>::const_iterator a = SecondTauProducts.begin(); a!=SecondTauProducts.end(); ++a){
-	  if(abs(a->pdg_id())==211){
-	    TLorentzVector  prod(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );
-	    if(prod.Pt() > pt_cut) passed2=true;
-	  }
-	}
-      }
-
-      if(JAK2==4){
-	TLorentzVector prod(0,0,0,0);
-	for(std::vector<HepMC::GenParticle>::const_iterator a = SecondTauProducts.begin(); a!=SecondTauProducts.end(); ++a){
-	  if(abs(a->pdg_id())==211){prod += TLorentzVector(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );}
-	  if(abs(a->pdg_id())==111){prod += TLorentzVector(a->momentum().px(), a->momentum().py(), a->momentum().pz(), a->momentum().e()  );}
-	}
-	if(prod.Pt() > pt_cut ) passed2=true;
-      }
-
-      if(JAK2==5){
-	TLorentzVector prod(0,0,0,0);
-	prod+=TLorentzVector(A1Pions2.at(0).momentum().px(), A1Pions2.at(0).momentum().py(), A1Pions2.at(0).momentum().pz(), A1Pions2.at(0).momentum().e());
-	prod+=TLorentzVector(A1Pions2.at(1).momentum().px(), A1Pions2.at(1).momentum().py(), A1Pions2.at(1).momentum().pz(), A1Pions2.at(1).momentum().e());
-	prod+=TLorentzVector(A1Pions2.at(2).momentum().px(), A1Pions2.at(2).momentum().py(), A1Pions2.at(2).momentum().pz(), A1Pions2.at(2).momentum().e());
-	if(prod.Pt() > pt_cut ) passed2=true;
-      }
-    }
 
     //---------------------------------------------------------------------------
     //--------------------  tau-
@@ -681,28 +480,18 @@ int main(int argc,char **argv){
       //      taucharge2=taucharge;
       tauandprod2=particles;
     }
-    
-    //----------------------------- pairs -----------------
 
-    
-    if(JAK1==4 &&JAK2==3 ){
-    }
-    
-    if(JAK1==4 &&JAK2==2 ){
-    }
-    
-    if(JAK1==3 &&JAK2==2 ){
-    }
-    
-    
+
+
+
     if(JAK1 ==3 && JAK2 == 3){
 
-       TLorentzVector tau1Lab = tauandprod1.at(0);
-       TLorentzVector tau2Lab = tauandprod2.at(0);
-       TLorentzVector ttRF = tau1Lab + tau2Lab;
-       TVector3 Rot1 = tau1Lab.Vect();
-
-
+      TLorentzVector tau1Lab = tauandprod1.at(0);
+      TLorentzVector tau2Lab = tauandprod2.at(0);
+      TLorentzVector ttRF = tau1Lab + tau2Lab;
+      TVector3 Rot1 = tau1Lab.Vect();
+      TLorentzVector HiigsLV = tau1Lab + tau2Lab;
+      //      std::cout<<"  mnass    "<< ( tauandprod1.at(0) +tauandprod2.at(0) ).M() <<std::endl;
 
        TLorentzVector pi1 = tauandprod1.at(1);
        TLorentzVector pi2 = tauandprod2.at(1);
@@ -719,109 +508,49 @@ int main(int argc,char **argv){
        pi1R1.SetVect(Rotate(pi1R1.Vect(),Rot1));
 
 
+       TLorentzVector Tau1HRF = BoostR(tau1Lab,HiigsLV);
+       TLorentzVector Tau2HRF = BoostR(tau2Lab,HiigsLV);
+
+       TLorentzVector Pi1HRF = BoostR(pi1,HiigsLV);
+       TLorentzVector Pi2HRF = BoostR(pi2,HiigsLV);
 
 
-       vector<TLorentzVector> tauandprodtau1;
-       vector<TLorentzVector> tauandprodtau2;
-
-
-       tauandprodtau1.push_back(tau1LabR1);
-       tauandprodtau1.push_back(pi1R1);
-       tauandprodtau2.push_back(tau2LabR1);
-       tauandprodtau2.push_back(pi2R1);
-       TVector3 v1 = pi1R1.Cross(tauandprodtau1);
-       TVector3 v2 = pi1R2.Cross(tauandprodtau2);
-
-
-
-       SCalculator testpolpi1;
-       testpolpi1.Configure(tauandprodtau1);
-       TVector3 polpi1 = testpolpi1.pvec();
+       TVector3 n1 = Pi1HRF.Vect().Cross(Tau1HRF.Vect());
+       TVector3 n2 = Pi2HRF.Vect().Cross(Tau2HRF.Vect());
  
-       pvecz1_plus->Fill(polpi1.Z(),HelWeightPlus);
-       pvecz1_minus->Fill(polpi1.Z(),HelWeightMinus);
-       pvecy1_plus->Fill(polpi1.Y(),HelWeightPlus);
-       pvecy1_minus->Fill(polpi1.Y(),HelWeightMinus);
-       pvecx1_plus->Fill(polpi1.X(),HelWeightPlus);
-       pvecx1_minus->Fill(polpi1.X(),HelWeightMinus);
+          if(n1.Mag()!=0 && n2.Mag()!=0){
+            double mag = n1.Mag()*n2.Mag();
+            double thetaangle = acos(n1*n2/mag);
+	    //	    std::cout<<"  theta angle "<< thetaangle <<std::endl;
 
+	    phiang->Fill(thetaangle);
 
-       SCalculator testpolpi2;
-       testpolpi2.Configure(tauandprodtau2);
-       TVector3 polpi2 = testpolpi2.pvec();
- 
-
-
-
-
-
-
-       pvecz2_plus->Fill(polpi2.Z(),HelWeightPlus);
-       pvecz2_minus->Fill(polpi2.Z(),HelWeightMinus);
-       pvecy2_plus->Fill(polpi2.Y(),HelWeightPlus);
-       pvecy2_minus->Fill(polpi2.Y(),HelWeightMinus);
-       pvecx2_plus->Fill(polpi2.X(),HelWeightPlus);
-       pvecx2_minus->Fill(polpi2.X(),HelWeightMinus);
+	  }
 
 
        // std::cout<<"  TT "<< polpi1.X()*polpi2.X() + polpi1.Y()*polpi2.Y()  <<std::endl;
        // std::cout<<"  TN "<< polpi1.X()*polpi2.Y() + polpi1.Y()*polpi2.X()  <<std::endl;
-       phiang->Fill(acos(v1*v2));
-    }
-    
-     
-    if(JAK1 ==2 && JAK2 == 3)
-      {
-      }
-     
-    if(JAK1 ==2 && JAK2 == 4)
-      {
-      }
+       // phiang->Fill(acos(v1*v2));
+}
 
-    if(JAK1 ==3 && JAK2 == 4)
-      {
-      }
-      
-    if(JAK1 ==3 && JAK2 == 5 &&   SubJAK2==51)
-      {
-      }
-    
-    if(JAK1 ==2 && JAK2 == 5 &&   SubJAK2==51)
-      {
-      }
-    
-    if(JAK1 ==4 && JAK2 == 4)
-      {
-      }
-      
-      
-      // Run MC-TESTER on the event
-      HepMCEvent temp_event(*HepMCEvt,false);
-      MC_Analyze(&temp_event);
-      
-      // Print some events at the end of the run
-      if(iEvent>=NumberOfEvents-5){  
-	// pythia.event.list();
-	HepMCEvt->print();
-      }
 
-      // Clean up HepMC event
-      delete HepMCEvt;  
+
+
+    // Run MC-TESTER on the event
+    HepMCEvent temp_event(*HepMCEvt,false);
+    MC_Analyze(&temp_event);
+
+    // Clean up HepMC event
+    delete HepMCEvt;
   }
-  
-  
-  
+  pythia.statistics();
+  Tauola::summary();
+  MC_Finalize();
 
   
   file->Write();
   file->Close();
-  
-  pythia.statistics();
-  MC_Finalize();
-  
-  // This is an access to old FORTRAN info on generated tau sample. 
-  // That is why it refers to old version number (eg. 2.7) for TAUOLA.
-  //Tauola::summary();
-}
 
+
+}
 

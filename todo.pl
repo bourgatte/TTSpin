@@ -190,6 +190,9 @@ for($l=0;$l<$numArgs; $l++){
        # Setting up qsub submitter
         system(sprintf("cp submit $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
         system(sprintf("cp Submit.sh $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
+	system(sprintf("cp pythia_Z.conf $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
+	system(sprintf("cp pythia_H.conf $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
+
 	system(sprintf("echo \"#! /bin/bash     \">> qsub_submit.sh"));
 	system(sprintf("echo \"echo 'Starting Job'       \">> qsub_submit.sh"));
 	system(sprintf("echo \"export workdir=$s1_par     \">> qsub_submit.sh"));
