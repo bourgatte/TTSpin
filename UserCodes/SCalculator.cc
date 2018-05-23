@@ -4,35 +4,17 @@
 SCalculator::SCalculator(){
 }
 
-SCalculator::SCalculator(vector<TLorentzVector> TauAndProd)
+SCalculator::SCalculator(string type):
+  type_(type)
 {
-  if(TauAndProd.size()!=2){
-    std::cout<<" Warning!! Size of rho input vector != 2 !! "<<std::endl;
-  }
-  TLorentzVector LabFrame = TauAndProd.at(1);
-  Setup(TauAndProd, LabFrame);
 }
 
 void 
-SCalculator::Setup(vector<TLorentzVector> TauAndProd, TLorentzVector ReferenceFrame){
-   debug=false;
+SCalculator::Configure(vector<TLorentzVector> TauAndProd, TLorentzVector Frame, int charge){
    for(unsigned int i=0; i<TauAndProd.size(); i++){
-     TauAndProd_LF.push_back(TauAndProd.at(i));
+     TauAndProd_HRF.push_back(Boost(TauAndProd.at(i), Frame));
    }
-
-
-
- 
-
-}
-
-void 
-SCalculator::Configure(vector<TLorentzVector> TauAndProd){
-  if(TauAndProd.size()!=2){
-    std::cout<<" Warning!! Size of input vector != 4 !! "<<std::endl;
-  }
-  TLorentzVector LabFrame = TauAndProd.at(1);
-  Setup(TauAndProd,LabFrame);
+   charge_=charge;
 }
 
 bool
@@ -78,18 +60,22 @@ SCalculator::Rotate(TVector3 LVec, TVector3 Rot){
 }
 
 TVector3
-SCalculator::pvec(){
-   TLorentzVector piLab = TauAndProd_LF.at(1);
-   TLorentzVector tauLab = TauAndProd_LF.at(0);
-   TVector3 Rot1 = tauLab.Vect();
-
-   TLorentzVector tauLabR1    = tauLab;
-   TLorentzVector piLabR1     = piLab ;
-   tauLabR1.SetVect(Rotate(tauLabR1.Vect(),Rot1));
-   piLabR1.SetVect(Rotate(piLabR1.Vect(),Rot1));
-
-   TLorentzVector tauTau= Boost(tauLabR1,tauLabR1);
-   TLorentzVector piTau= Boost(piLabR1,tauLabR1);
-
-   return  piTau.Vect()*(1/piTau.Vect().Mag());
+SCalculator::pv(){
+  TVector3 out(0,0,0);
+  if(type_=="pion") out = TauAndProd_HRF.at(1).Vect();
+  if(type_=="rho"){
+    TLorentzVector pi  = TauAndProd_HRF.at(1);
+    TLorentzVector pi0 = TauAndProd_HRF.at(2);
+    TLorentzVector Tau = TauAndProd_HRF.at(0);
+    TLorentzVector q= pi  - pi0;
+    TLorentzVector P= Tau;
+    TLorentzVector N= Tau - pi - pi0;
+    out = P.M()*(2*(q*N)*q.Vect() - q.Mag2()*N.Vect()) * (1/ (2*(q*N)*(q*P) - q.Mag2()*(N*P)));
+  }
+  if(type_=="a1"){
+    PolarimetricA1  a1pol;
+    a1pol.Configure(TauAndProd_HRF,charge_);
+    out = a1pol.PVC().Vect();
+  }
+  return out;
 }

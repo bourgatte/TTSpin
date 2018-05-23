@@ -252,7 +252,7 @@ rhoHelper::getOmegaRho(){
 //----------------------  angles beta  + theta  + alpha ----------
 double 
 rhoHelper::getOmegaRhoBar(){
- TVector3 Rot1 = TauLV.Vect();
+  TVector3 Rot1 = TauLV.Vect();
   TLorentzVector tauLabR1    = TauLV;
   TLorentzVector piLabR1     = TauRhoPi;
   TLorentzVector pi0LabR1    = TauRhoPi0;

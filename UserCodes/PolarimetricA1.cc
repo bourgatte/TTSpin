@@ -60,16 +60,16 @@ PolarimetricA1::Setup(vector<TLorentzVector> TauA1andProd, TLorentzVector Refere
    for(unsigned int i=0; i<TauA1andProd.size(); i++){
      TLorentzVector Rotated = TauA1andProd.at(i);
      Rotated.SetVect(Rotate(Rotated.Vect(),RotVector));
-     TauA1andProd_RF.push_back(Boost(Rotated,ReferenceFrame));
+     //     TauA1andProd_RF.push_back(Boost(Rotated,ReferenceFrame));
+     TauA1andProd_RF.push_back(TauA1andProd.at(i));
    }
+
    LFosPionLV  = TauA1andProd.at(1);
    LFss1pionLV = TauA1andProd.at(2);
    LFss2pionLV = TauA1andProd.at(3);
    LFa1LV = LFosPionLV+LFss1pionLV+LFss2pionLV;
    LFtauLV = TauA1andProd.at(0);
    LFQ= LFa1LV.M();
-
-  
 
    _osPionLV   = TauA1andProd_RF.at(1);
    _ss1pionLV  = TauA1andProd_RF.at(2);

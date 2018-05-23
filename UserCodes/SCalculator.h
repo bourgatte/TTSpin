@@ -23,6 +23,7 @@
 #include <string.h>
 #include <vector>
 #include "TLorentzVector.h"
+#include "PolarimetricA1.h"
 using namespace std;
 
 
@@ -30,24 +31,24 @@ class SCalculator {
  
  public:
   SCalculator();
-  SCalculator(vector<TLorentzVector> TauAndProd);
+  SCalculator(string type);
   ~SCalculator();
-  void Configure(vector<TLorentzVector> TauAndProd);
+  void Configure(vector<TLorentzVector> TauAndProd, TLorentzVector Frame, int charge=1);
   bool isConfigured();
-  void Setup(vector<TLorentzVector> TauAndProd, TLorentzVector ReferenceFrame );
-  void Initialize(TLorentzVector t, TLorentzVector mu);
   std::vector<TLorentzVector> getBoosted(){return TauAndProd_LF;}
   TLorentzVector Boost(TLorentzVector pB, TLorentzVector frame);
   TVector3 Rotate(TVector3 LVec, TVector3 Rot);
-  TVector3 pvec();
+  TVector3 pv();
 
   //====================
 
 
  private:
- 
+  string type_;
+  int charge_;
   TVector3 polvec();
   vector<TLorentzVector> TauAndProd_LF;
+  vector<TLorentzVector> TauAndProd_HRF;
   TLorentzVector TauLV;
   bool debug;
   TMatrixT<double> convertToMatrix(TVectorT<double> V);

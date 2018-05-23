@@ -1,12 +1,3 @@
-/**
- * Example of use of tauola C++ interface. Pythia events are
- * generated with a stable tau. Taus are subsequently decay via
- * tauola.
- *
- * @author Nadia Davidson
- * @date 17 June 2008
- */
-
 #include "Tauola/Log.h"
 #include "Tauola/Plots.h"
 #include "Tauola/Tauola.h"
@@ -20,8 +11,10 @@
 #include "TComplex.h"
 #include "TMatrixT.h"
 #include "TVectorT.h"
+#include "TVector3.h"
 #include "TMatrixTSym.h"
 #include "TMath.h"
+#include "UserCodes/SCalculator.h"
 //pythia header files
 #ifdef PYTHIA8180_OR_LATER
 #include "Pythia8/Pythia.h"
@@ -164,13 +157,67 @@ Rotate(TVector3 LVec, TVector3 Rot){
   vec.RotateX(Rot.Theta());
   return vec;
 }
+void redMinus(TauolaParticle *minus)
+{
+  //   
+  // this method can be used to redefine branching ratios in decay of tau-
+  // either generally, or specific to  tau- with pointer *minus.
+  //
+  // Pointer *minus can be used to define properties of decays for taus
+  // at specific point(s) in the event tree. Example: 
+  // vector<TauolaParticle*> x=minus->getMothers();
+  // and define special versions depending on x. 
+  //
+  // Any combination of methods
+  // Tauola::setTauBr(int mode, double br);
+  Tauola::setTaukle(1,0,0,0);
 
+  for(unsigned int dec=1; dec < 23; dec++){
+    double br=0.0;
+    if(dec == 3 || dec == 4  || dec ==5) br = 0.333;
+    Tauola::setTauBr(dec, br);
+  }
+
+  // can be called here 
+}
+
+void redPlus(TauolaParticle *plus)
+{
+  //   
+  // this method can be used to redefine branching ratios in decay of tau+
+  // either generally, or specific to  tau+ with pointer *plus.
+  //
+  // Pointer *plus can be used to define properties of decays for tau
+  // at specific point(s) in the event tree. Example: 
+  // vector<TauolaParticle*> x=plus->getMothers();
+  // and define special versions depending on x. 
+  //
+  // Any combination of methods
+  // Tauola::setTauBr(int mode, double br);
+  Tauola::setTaukle(1,0,0,0);
+
+  for(unsigned int dec=1; dec < 23; dec++){
+    double br=0.0;
+    if(dec == 3 || dec == 4  || dec ==5) br = 0.333;
+    Tauola::setTauBr(dec, br);
+  }
+  // can be called here 
+}
 int main(int argc,char **argv){
 
  
-  TString FileName  = "TTSpin_plots.root";
+  TString FileName  = "TTSpin_plots_"+ TString(argv[6]) +".root";
   TFile *file = new TFile(FileName,"RECREATE");
-  TH1F *phiang= new TH1F("phiang","#phi ",50,0,3.14);
+  TH1F *phi_pipi= new TH1F("phi_pipi","#phi*_{#pi#pi}",50,0,3.14);
+  TH1F *phi_rhorho= new TH1F("phi_rhorho","#phi*_{#rho#rho}",50,0,3.14);
+  TH1F *phi_rhopi= new TH1F("phi_rhopi","#phi*_{#pi#rho}",50,0,3.14);
+  TH1F *phi_a1rho= new TH1F("phi_a1rho","#phi*_{a_{1}#rho}",50,0,3.14);
+  TH1F *phi_a1a1= new TH1F("phi_a1a1","#phi*_{a_{1}a_{1}}",50,0,3.14);
+  TH1F *phi_a1pi= new TH1F("phi_a1pi","#phi*_{a_{1}#pi}",50,0,3.14);
+
+  TH1F *accol_pipi= new TH1F("accol_pipi","#delta*_{#pi#pi}",150,2.99,3.14);
+
+
   // Program needs at least 4 parameters
   if(argc<5)
   {
@@ -233,11 +280,11 @@ int main(int argc,char **argv){
   if(argc>3) NumberOfEvents=atoi(argv[3]);
 
   // 4. Set Tauola decay mode (argv[4], from console)
-  if(argc>4)
-  {
-    Tauola::setSameParticleDecayMode(atoi(argv[4]));
-    Tauola::setOppositeParticleDecayMode(atoi(argv[4]));
-  }
+  // if(argc>4)
+  // {
+  //   Tauola::setSameParticleDecayMode(atoi(argv[4]));
+  //   Tauola::setOppositeParticleDecayMode(atoi(argv[4]));
+  // }
 
   // 5. Set Higgs scalar-pseudoscalar mixing angle (argv[5], from console)
   if(argc>5)
@@ -245,6 +292,9 @@ int main(int argc,char **argv){
     Tauola::setHiggsScalarPseudoscalarMixingAngle(atof(argv[5]));
     Tauola::setHiggsScalarPseudoscalarPDG(25);
   }
+
+  Tauola::setRedefineTauPlus(redPlus);
+  Tauola::setRedefineTauMinus(redMinus);
 
   Tauola::setRadiation(false); // turn off radiation in leptionic decays
   Tauola::initialize();
@@ -395,6 +445,13 @@ int main(int argc,char **argv){
     }
     TLorentzVector tau1(0,0,0,0);
     TLorentzVector tau2(0,0,0,0);
+    TLorentzVector a1ospi(0,0,0,0);
+    TLorentzVector a1ss1pi(0,0,0,0);
+    TLorentzVector a1ss2pi(0,0,0,0);
+    TLorentzVector a1(0,0,0,0);
+
+    int taucharge1;
+    int taucharge2;
     vector<TLorentzVector> tauandprod1,tauandprod2;
     tau1.SetPxPyPzE(FirstTau->momentum().px(), FirstTau->momentum().py(), FirstTau->momentum().pz(), FirstTau->momentum().e());
     tau2.SetPxPyPzE(SecondTau->momentum().px(), SecondTau->momentum().py(), SecondTau->momentum().pz(), SecondTau->momentum().e());
@@ -439,7 +496,15 @@ int main(int argc,char **argv){
       particles.clear();
       SortPions(A1Pions1);
       int taucharge =  (A1Pions1.at(0).pdg_id()+A1Pions1.at(1).pdg_id()+A1Pions1.at(2).pdg_id() > 0) ? 1 : -1;
-      //      taucharge1=taucharge;
+      a1ss1pi.SetPxPyPzE(A1Pions1.at(0).momentum().px(), A1Pions1.at(0).momentum().py(), A1Pions1.at(0).momentum().pz(), A1Pions1.at(0).momentum().e());
+      a1ss2pi.SetPxPyPzE(A1Pions1.at(1).momentum().px(), A1Pions1.at(1).momentum().py(), A1Pions1.at(1).momentum().pz(), A1Pions1.at(1).momentum().e());
+      a1ospi.SetPxPyPzE(A1Pions1.at(2).momentum().px(), A1Pions1.at(2).momentum().py(), A1Pions1.at(2).momentum().pz(), A1Pions1.at(2).momentum().e());
+      particles.push_back(tau1);
+      particles.push_back(a1ospi);
+      particles.push_back(a1ss1pi);
+      particles.push_back(a1ss2pi);
+      
+      taucharge1=taucharge;
       tauandprod1=particles;
     }
     
@@ -469,84 +534,230 @@ int main(int argc,char **argv){
        }
        tauandprod2=tauandprod;  
      }
-
+  
     
     if(JAK2==5 && SubJAK2==51){
       vector<TLorentzVector> particles;
       particles.clear();
       SortPions(A1Pions2);
+      a1ss1pi.SetPxPyPzE(A1Pions2.at(0).momentum().px(), A1Pions2.at(0).momentum().py(), A1Pions2.at(0).momentum().pz(), A1Pions2.at(0).momentum().e());
+      a1ss2pi.SetPxPyPzE(A1Pions2.at(1).momentum().px(), A1Pions2.at(1).momentum().py(), A1Pions2.at(1).momentum().pz(), A1Pions2.at(1).momentum().e());
+      a1ospi.SetPxPyPzE(A1Pions2.at(2).momentum().px(), A1Pions2.at(2).momentum().py(), A1Pions2.at(2).momentum().pz(), A1Pions2.at(2).momentum().e());
       
+      particles.push_back(tau2);
+      particles.push_back(a1ospi);
+      particles.push_back(a1ss1pi);
+      particles.push_back(a1ss2pi);
+
       int taucharge =  (A1Pions2.at(0).pdg_id()+A1Pions2.at(1).pdg_id()+A1Pions2.at(2).pdg_id() > 0) ? 1 : -1;
-      //      taucharge2=taucharge;
+      taucharge2=taucharge;
       tauandprod2=particles;
     }
 
+    
+    if( JAK1 ==5 && SubJAK1==51 && JAK2 == 4){
+      SCalculator Scalc1("a1");
+      SCalculator Scalc2("rho");
+      Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0), taucharge1);
+      TVector3 h1=-Scalc1.pv();
+      Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0));
+      TVector3 h2=Scalc2.pv();
+      
+      TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      
+      TVector3 n1 = h1.Cross(T1HRF.Vect());
+      TVector3 n2 = h2.Cross(T2HRF.Vect());
+      
 
 
-
-    if(JAK1 ==3 && JAK2 == 3){
-
-      TLorentzVector tau1Lab = tauandprod1.at(0);
-      TLorentzVector tau2Lab = tauandprod2.at(0);
-      TLorentzVector ttRF = tau1Lab + tau2Lab;
-      TVector3 Rot1 = tau1Lab.Vect();
-      TLorentzVector HiigsLV = tau1Lab + tau2Lab;
-      //      std::cout<<"  mnass    "<< ( tauandprod1.at(0) +tauandprod2.at(0) ).M() <<std::endl;
-
-       TLorentzVector pi1 = tauandprod1.at(1);
-       TLorentzVector pi2 = tauandprod2.at(1);
-
-       TLorentzVector pi1R1 = pi1;
-       TLorentzVector pi2R1 = pi2;
-       TLorentzVector tau1LabR1 = tau1Lab;
-       TLorentzVector tau2LabR1 = tau2Lab;
-
-       tau1LabR1.SetVect(Rotate(tau1LabR1.Vect(),Rot1));
-       tau2LabR1.SetVect(Rotate(tau2LabR1.Vect(),Rot1));
-
-       pi2R1.SetVect(Rotate(pi2R1.Vect(),Rot1));
-       pi1R1.SetVect(Rotate(pi1R1.Vect(),Rot1));
-
-
-       TLorentzVector Tau1HRF = BoostR(tau1Lab,HiigsLV);
-       TLorentzVector Tau2HRF = BoostR(tau2Lab,HiigsLV);
-
-       TLorentzVector Pi1HRF = BoostR(pi1,HiigsLV);
-       TLorentzVector Pi2HRF = BoostR(pi2,HiigsLV);
-
-
-       TVector3 n1 = Pi1HRF.Vect().Cross(Tau1HRF.Vect());
-       TVector3 n2 = Pi2HRF.Vect().Cross(Tau2HRF.Vect());
+      if(n1.Mag()!=0 && n2.Mag()!=0){
+	double mag = n1.Mag()*n2.Mag();
+	phi_a1rho->Fill(acos(n1*n2/mag));
+      }
+    }
+    if( JAK2 ==5 && SubJAK2==51 && JAK1 == 4){
+      SCalculator Scalc2("a1");
+      SCalculator Scalc1("rho");
+      Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0));
+      TVector3 h1=Scalc1.pv();
+      Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0), taucharge2);
+      TVector3 h2=-Scalc2.pv();
+      
+      TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      
+      TVector3 n1 = h1.Cross(T1HRF.Vect());
+      TVector3 n2 = h2.Cross(T2HRF.Vect());
+      if(n1.Mag()!=0 && n2.Mag()!=0){
+	double mag = n1.Mag()*n2.Mag();
+	phi_a1rho->Fill(acos(n1*n2/mag));
+      }
+    }
  
-          if(n1.Mag()!=0 && n2.Mag()!=0){
-            double mag = n1.Mag()*n2.Mag();
-            double thetaangle = acos(n1*n2/mag);
-	    //	    std::cout<<"  theta angle "<< thetaangle <<std::endl;
+    if( JAK2 ==5 && SubJAK2==51 && JAK1 ==5 && SubJAK1==51){
+      SCalculator Scalc2("a1");
+      SCalculator Scalc1("a1");
+      Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0), taucharge1);
+      TVector3 h1=-Scalc1.pv();
+      Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0), taucharge2);
+      TVector3 h2=-Scalc2.pv();
+      
+      TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      
+      TVector3 n1 = h1.Cross(T1HRF.Vect());
+      TVector3 n2 = h2.Cross(T2HRF.Vect());
+      
+      // n1.Print();
+      // n2.Print();
+      
+      if(n1.Mag()!=0 && n2.Mag()!=0){
+	double mag = n1.Mag()*n2.Mag();
+	phi_a1a1->Fill(acos(n1*n2/mag));
+      }
+    }
+ 
 
-	    phiang->Fill(thetaangle);
 
+
+    if( JAK1 ==3 && JAK2 == 4){
+      SCalculator Scalc1("pion");
+      SCalculator Scalc2("rho");
+      Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0));
+      TVector3 h1=Scalc1.pv();
+      Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0));
+      TVector3 h2=Scalc2.pv();
+      
+      TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  
+      TVector3 n1 = h1.Cross(T1HRF.Vect());
+      TVector3 n2 = h2.Cross(T2HRF.Vect());
+      
+      if(n1.Mag()!=0 && n2.Mag()!=0){
+	double mag = n1.Mag()*n2.Mag();
+	phi_rhopi->Fill(acos(n1*n2/mag));
+      }
+    }
+    
+        if( JAK1 ==4 && JAK2 == 3){
+	  SCalculator Scalc2("pion");
+	  SCalculator Scalc1("rho");
+	  Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0));
+	  TVector3 h1=Scalc1.pv();
+	  Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0));
+	  TVector3 h2=Scalc2.pv();
+	  
+	  TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  
+	  TVector3 n1 = h1.Cross(T1HRF.Vect());
+	  TVector3 n2 = h2.Cross(T2HRF.Vect());
+	  
+	  if(n1.Mag()!=0 && n2.Mag()!=0){
+	    double mag = n1.Mag()*n2.Mag();
+	    phi_rhopi->Fill(acos(n1*n2/mag));
 	  }
+	}
+
+	
+    if( JAK1 ==5 && SubJAK1==51 && JAK2 == 3){
+      SCalculator Scalc1("a1");
+      SCalculator Scalc2("pion");
+      Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0), taucharge1);
+      TVector3 h1=-Scalc1.pv();
+      Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0));
+      TVector3 h2=Scalc2.pv();
+      
+      TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      
+      TVector3 n1 = h1.Cross(T1HRF.Vect());
+      TVector3 n2 = h2.Cross(T2HRF.Vect());
+      
+      if(n1.Mag()!=0 && n2.Mag()!=0){
+	double mag = n1.Mag()*n2.Mag();
+	phi_a1pi->Fill(acos(n1*n2/mag));
+      }
+    }
+    if( JAK2 ==5 && SubJAK2==51 && JAK1 == 3){
+      SCalculator Scalc2("a1");
+      SCalculator Scalc1("pion");
+      Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0));
+      TVector3 h1=Scalc1.pv();
+      Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0), taucharge2);
+      TVector3 h2=-Scalc2.pv();
+      
+      TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+      
+      TVector3 n1 = h1.Cross(T1HRF.Vect());
+      TVector3 n2 = h2.Cross(T2HRF.Vect());
+      
+      if(n1.Mag()!=0 && n2.Mag()!=0){
+	double mag = n1.Mag()*n2.Mag();
+	phi_a1pi->Fill(acos(n1*n2/mag));
+      }
+    }
 
 
-       // std::cout<<"  TT "<< polpi1.X()*polpi2.X() + polpi1.Y()*polpi2.Y()  <<std::endl;
-       // std::cout<<"  TN "<< polpi1.X()*polpi2.Y() + polpi1.Y()*polpi2.X()  <<std::endl;
-       // phiang->Fill(acos(v1*v2));
-}
+	if(JAK1 ==4 && JAK2 == 4){
+	  
+	  SCalculator Scalc1("rho");
+	  SCalculator Scalc2("rho");
+	  Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0));
+	  TVector3 h1=Scalc1.pv();
+	  Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0));
+	  TVector3 h2=Scalc2.pv();
+	  
+	  TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  
+	  TVector3 n1 = h1.Cross(T1HRF.Vect());
+	  TVector3 n2 = h2.Cross(T2HRF.Vect());
+ 
 
+	  if(n1.Mag()!=0 && n2.Mag()!=0){
+	    double mag = n1.Mag()*n2.Mag();
+	    phi_rhorho->Fill(acos(n1*n2/mag));
+	  }
+	}
+	
+	if(JAK1 ==3 && JAK2 == 3){
+	  SCalculator Scalc1("pion");
+	  SCalculator Scalc2("pion");
+	  Scalc1.Configure(tauandprod1,tauandprod1.at(0)+tauandprod2.at(0));
+	  TVector3 h1=Scalc1.pv();
+	  Scalc2.Configure(tauandprod2,tauandprod1.at(0)+tauandprod2.at(0));
+	  TVector3 h2=Scalc2.pv();
+	  
+	  TLorentzVector T1HRF = BoostR(tauandprod1.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  TLorentzVector T2HRF = BoostR(tauandprod2.at(0),tauandprod1.at(0)+tauandprod2.at(0));
+	  
+	  TVector3 n1 = h1.Cross(T1HRF.Vect());
+	  TVector3 n2 = h2.Cross(T2HRF.Vect());
+	  accol_pipi->Fill(acos(h1*h2/(h1.Mag()*h2.Mag())));
+	  if(n1.Mag()!=0 && n2.Mag()!=0){
+	    double mag = n1.Mag()*n2.Mag();
+	    phi_pipi->Fill(acos(n1*n2/mag));
+	  }
+	}
+	
+	
 
-
-
-    // Run MC-TESTER on the event
-    HepMCEvent temp_event(*HepMCEvt,false);
-    MC_Analyze(&temp_event);
-
-    // Clean up HepMC event
-    delete HepMCEvt;
+	
+	// Run MC-TESTER on the event
+	HepMCEvent temp_event(*HepMCEvt,false);
+	MC_Analyze(&temp_event);
+	
+	// Clean up HepMC event
+	delete HepMCEvt;
   }
   pythia.statistics();
   Tauola::summary();
   MC_Finalize();
-
+  
   
   file->Write();
   file->Close();
