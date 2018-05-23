@@ -199,7 +199,7 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("echo \"export HOME=$s1_par     \">> qsub_submit.sh"));
 	system(sprintf("echo \"cd $PWD/$tauoladir/tauola++/1.1.5/examples/;    \">> qsub_submit.sh"));
 	system(sprintf("echo \"source $PWD/Install_TauolaEnvironment_$time   \">> qsub_submit.sh"));
-	system(sprintf("echo \"$PWD/$tauoladir/tauola++/1.1.5/examples/poltaumain_pythia_tauola.exe $SP  \">> qsub_submit.sh"));
+	system(sprintf("echo \"$PWD/$tauoladir/tauola++/1.1.5/examples/transspin_pythia_tauola.exe pythia_H.conf 1 100000 3 1.57079632679489656e+00 $SP  \">> qsub_submit.sh"));
 	system(sprintf("echo \"echo 'Completed Job'    \">> qsub_submit.sh"));
 	system(sprintf("mv qsub_submit.sh $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
 
