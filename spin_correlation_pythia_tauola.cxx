@@ -210,7 +210,7 @@ int main(int argc,char **argv){
   double zmass;
   double pion1_px;
  
-  TString FileName  = "TTSpin_output_"+ TString(argv[6]) +".root";
+  TString FileName  = "TTSpin_output_"+ TString(argv[5]) +".root";
   TFile *file = new TFile(FileName,"RECREATE");
   TTree * t = new TTree("T","pythia_tree");
 
@@ -290,7 +290,7 @@ int main(int argc,char **argv){
   // }
 
   // 5. Set Higgs scalar-pseudoscalar mixing angle (argv[5], from console)
-  if(argc>5)
+  if(argc>4)
   {
     Tauola::setHiggsScalarPseudoscalarMixingAngle(atof(argv[5]));
     Tauola::setHiggsScalarPseudoscalarPDG(25);

@@ -151,6 +151,7 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cp transspin_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
 	system(sprintf("cp spin_correlation_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
 	system(sprintf("cp spin_correlation_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
+	system(sprintf("cp run.py  $PWD/$tauoladir/tauola++/1.1.5/examples/;"));
 
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
 
