@@ -208,13 +208,14 @@ int main(int argc,char **argv){
 
 
   double zmass;
-
+  double pion1_px;
  
   TString FileName  = "TTSpin_output_"+ TString(argv[6]) +".root";
   TFile *file = new TFile(FileName,"RECREATE");
   TTree * t = new TTree("T","pythia_tree");
 
   t->Branch("zmass",&zmass);
+  t->Branch("pion1_px",&pion1_px);
 
 
   TH1F *M_tautau= new TH1F("M_tautau","M_{#tau#tau}, GeV",50,85,100);
@@ -348,7 +349,9 @@ int main(int argc,char **argv){
     std::vector<HepMC::GenParticle > A1Pions1;
     std::vector<HepMC::GenParticle > A1Pions2;
     std::vector<HepMC::GenParticle > SortA1Pions;  //os, ss1, ss2
-    for ( HepMC::GenEvent::particle_const_iterator p =HepMCEvt->particles_begin();  p != HepMCEvt->particles_end(); ++p ){  
+    //    std::cout<<"  ---  "<<std::endl;
+    for ( HepMC::GenEvent::particle_const_iterator p =HepMCEvt->particles_begin();  p != HepMCEvt->particles_end(); ++p ){
+      //      std::cout<<" (*p)->pdg_id()  "  << (*p)->pdg_id() <<std::endl;
       if((*p)->pdg_id()==15){
 	FirstTau = *p;
 	for ( HepMC::GenEvent::particle_const_iterator d =HepMCEvt->particles_begin();  d != HepMCEvt->particles_end(); ++d ){  
@@ -741,9 +744,24 @@ int main(int argc,char **argv){
 	  }
 	}
 	
-	
+	//  TLorentzVector tau1,2  - LV of tau1 and tau2
+	//  tauandprod1,2   -  vector of LVs of tau and its products
+	//  JAK1,2 - decay mode of tau1,2
+        //  JAK = :
+	//  1 - elctron
+        //  2 - muon
+        //  3 - pion
+        //  4 - rho
+        //  5 - a1
+        // SubJAK1,2; SubJAK1,2 = 51,  it means that a1 decays to three CHARGED pions; 
+
+
 	//  ---------------------------------  PUT YOUR CODE HERE
 	
+	if(JAK1 ==3 && JAK2 == 3){
+	  pion1_px = tauandprod1.at(1).Px();
+	}
+
 	M_tautau->Fill((tau1+ tau2).M());
 	zmass=(tau1+ tau2).M();
 	t->Fill();
