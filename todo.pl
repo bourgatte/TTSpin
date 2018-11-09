@@ -13,7 +13,6 @@ $UserDir="";
 
 if($UserID eq "vcherepa"){
     $UserIDCern="cherepan";
-#    $UserDir="--vcherepa";
 }
 
 $PWD=getcwd;
@@ -24,12 +23,12 @@ if($ARGV[0] eq "--help" || $ARGV[0] eq ""){
     printf("\nWelcome to tauola installer, please look at the instruction below.");
     printf("\nThis code requires one input option. The syntax is: ./todo.pl [OPTION]");
     printf("\n First of all setup the environment: \n\n");
-    printf("\n./todo.pl --setup  <tauoladir>                              For example: ./todo.pl --setup  install\n");
+    printf("\n./todo.pl --setup  <install>                              For example: ./todo.pl --setup  install\n");
     printf("\n\nAfter this step is completed prcoceed further and  ");
     printf("\nchoose from the following options:\n");
     printf("\n./todo.pl --help                                             Prints this message");
-    printf("\n./todo.pl --tauola  <tauoladir>                              Install tauola and user codes; <tauoladir> must be the same as was set with setup option ");
-    printf("\n./todo.pl --tauoladefault  <tauoladir>                       Install default  tauola; <tauoladir> must be the same as was set with setup option  ");
+    printf("\n./todo.pl --tauola  <install>                              Install tauola and user codes; <install> must be the same as was set with setup option ");
+    printf("\n./todo.pl --tauoladefault  <install>                       Install default  tauola; <install> must be the same as was set with setup option  ");
     printf("\n  ========================================================================================\n");
     exit(0);  
 }
@@ -44,19 +43,19 @@ for($l=0;$l<$numArgs; $l++){
 	$setdir=$ARGV[l+1];
 
 
-	system(sprintf("rm Install_TauolaEnvironment_*"));
+	system(sprintf("rm install_env_*"));
 	$SLDP='\$LD_LIBRARY_PATH';
 
 
-	system(sprintf("rm Install_TauolaEnvironment_*"));	
-	system(sprintf("echo \"export PYTHIA8DATA='$PWD/$setdir/tauola++/1.1.5/pythia8/176/xmldoc'\">> Install_TauolaEnvironment_$time"));
-	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/TauSpiner/lib\">> Install_TauolaEnvironment_$time"));
-	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/pythia8/176/lib/\">> Install_TauolaEnvironment_$time"));
-	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/HepMC-2.06.05/workdir/lib \">> Install_TauolaEnvironment_$time"));
-	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/lhapdf-5.9.1/workdir/lib\">> Install_TauolaEnvironment_$time"));
-	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/examples/UserCodes\">> Install_TauolaEnvironment_$time"));
+	system(sprintf("rm install_env_*"));	
+	system(sprintf("echo \"export PYTHIA8DATA='$PWD/$setdir/tauola++/1.1.5/pythia8/176/xmldoc'\">> install_env_$time"));
+	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/TauSpiner/lib\">> install_env_$time"));
+	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/pythia8/176/lib/\">> install_env_$time"));
+	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/HepMC-2.06.05/workdir/lib \">> install_env_$time"));
+	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/lhapdf-5.9.1/workdir/lib\">> install_env_$time"));
+	system(sprintf("echo \"export LD_LIBRARY_PATH=$SLDP:$PWD/$setdir/tauola++/1.1.5/examples/UserCodes\">> install_env_$time"));
 #	system(sprintf("echo \"cernlib-use --version 5.34.18 root \n\">> Install_TauolaEnvironment_$time"));
-	system(sprintf("echo \"source /libcern/root/5.34.18/sl6.3-x86_64/setup.sh \n\">> Install_TauolaEnvironment_$time"));
+	system(sprintf("echo \"source /libcern/root/5.34.18/sl6.3-x86_64/setup.sh \n\">> install_env_$time"));
 
 
 
@@ -66,7 +65,7 @@ for($l=0;$l<$numArgs; $l++){
 
 	printf("\n\nInstructions:");
 	printf("\nTo complete this step do:  \n\n");
-	printf("\n    1) source  Install_TauolaEnvironment_$time \n");
+	printf("\n    1) source  install_env_$time \n");
 	printf("\n    2)  ./todo.pl --tauola $setdir \n\n");
     }
     if($ARGV[$l] eq "--tauola"){
@@ -116,12 +115,6 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("mkdir $PWD/$tauoladir/tauola++/1.1.5/workdir; "));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/;   ./configure --prefix=$PWD/$tauoladir/tauola++/1.1.5/workdir  --with-hepmc=$PWD/$tauoladir/tauola++/1.1.5/HepMC-2.06.05/workdir  --with-pythia8=$PWD/$tauoladir/tauola++/1.1.5/pythia8/176/  --with-lhapdf=$PWD/$tauoladir/tauola++/1.1.5/lhapdf-5.9.1/workdir/ --with-mc-tester=$PWD/$tauoladir/tauola++/1.1.5/MC-TESTER/   --with-tau-spinner; "));
 
-
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make;"));
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make all;"));
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make install;"));
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
-
 	printf("\n___________________Tauola is compiled _____________________\n");
 	printf("|                                                                                               |\n");
 	printf("|                                                                                               |\n");
@@ -144,48 +137,22 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cp UserCodes/TauDecaysHelper.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/PolarimetricA1.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/PolarimetricA1.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-
 	system(sprintf("cp UserCodes/SCalculator.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/SCalculator.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-
 	system(sprintf("cp UserCodes/TauTauSpiner.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
 	system(sprintf("cp UserCodes/TauTauSpiner.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-
-
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes/; make  -f Makefile.shared;"));
-#	system(sprintf("cp Makefile  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
-#	system(sprintf("cp poltaumain_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
-##	system(sprintf("cp poltaumain_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
-#	system(sprintf("echo \"\#dummy\">> $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/poltaumain_pythia_tauola.Po"));
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
-
-
-
-
-
-
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make all;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make install;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
-
 	system(sprintf("cp Makefile  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
 	system(sprintf("cp transspin_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
 	system(sprintf("cp transspin_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
-
-
-
-
-
-#	system(sprintf("echo \"\#dummy\">> $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/poltaumain_pythia_tauola.Po"));
-
-
+	system(sprintf("cp spin_correlation_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
+	system(sprintf("cp spin_correlation_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
 
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
-
-
-
-
 
        # Setting up qsub submitter
         system(sprintf("cp submit $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
@@ -212,13 +179,8 @@ for($l=0;$l<$numArgs; $l++){
 
     if($ARGV[$l] eq "--tauoladefault"){
 	$tauoladir=$ARGV[l+1];
-#	$l++;
 	$currentdir=getcwd;
-
-
 	system(sprintf("cernlib-use --version 5.34.18 root \n"));
-                                
-
 	system(sprintf("rm -rf $tauoladir \n"));
 	printf("\nInstalling Tauola++  to  $tauoladir \n");
 	system(sprintf("mkdir  $tauoladir \n"));
@@ -255,29 +217,12 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/$tauoladir/tauola++/1.1.5/lhapdf-5.9.1/workdir/lib"));
 	system(sprintf("mkdir $PWD/$tauoladir/tauola++/1.1.5/workdir; "));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/;   ./configure --prefix=$PWD/$tauoladir/tauola++/1.1.5/workdir  --with-hepmc=$PWD/$tauoladir/tauola++/1.1.5/HepMC-2.06.05/workdir  --with-pythia8=$PWD/$tauoladir/tauola++/1.1.5/pythia8/176/  --with-lhapdf=$PWD/$tauoladir/tauola++/1.1.5/lhapdf-5.9.1/workdir/ --with-mc-tester=$PWD/$tauoladir/tauola++/1.1.5/MC-TESTER/   --with-tau-spinner; "));
-#	system(sprintf("cp Makefile  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
-#	system(sprintf("cp mypythia_example.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
-#	system(sprintf("echo \"\#dummy\">> $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/mypythia_example.Po"));
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples;  mkdir UserCodes;"));
-#	system(sprintf("cp UserCodes/Makefile.shared $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-#	system(sprintf("cp UserCodes/MultiplyNumbers.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-#	system(sprintf("cp UserCodes/MultiplyNumbers.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-#	system(sprintf("cp UserCodes/AddNumbers.h $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-#	system(sprintf("cp UserCodes/AddNumbers.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-#	system(sprintf("cp UserCodes/main.cc $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes; "));
-#	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples/UserCodes/; make all -f Makefile.shared;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make all;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make install;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
-
-
 	printf("\nInstruction:   \n    ");
 	printf(" cd $PWD/$tauoladir/tauola++/1.1.5/examples/; ./taumain_pythia_example | tee log.out;   \n\n\n");
     }
-
-
-
-
 }
 

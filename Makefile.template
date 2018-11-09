@@ -57,6 +57,7 @@ am__append_11 = -R $(MCTESTER_DIR)/lib
 am__append_12 = -I$(PYTHIA8_DIR)/include -I$(MCTESTER_DIR)/include -I$(ROOTINC) -I$(USERINC)  
 am__append_13 = -L$(MCTESTER_DIR)/lib -lHEPEvent -lHepMCEvent -lMCTester $(ROOTLIBS) $(USERLIBS)
 am__append_14 = transspin_pythia_tauola.exe
+am__append_14 = spin_correlation_pythia_tauola.exe
 subdir = examples
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -71,7 +72,8 @@ am__EXEEXT_1 =  \
 	taumain_stand_alone_example.exe$(EXEEXT)
 am__EXEEXT_2 = single_tau_gun_example.exe$(EXEEXT) \
 	taummk_pythia_example.exe$(EXEEXT)
-am__EXEEXT_3 = transspin_pythia_tauola.exe$(EXEEXT) 
+am__EXEEXT_3 = transspin_pythia_tauola.exe$(EXEEXT) \
+	spin_correlation_pythia_tauola.exe$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(exampledir)"
 PROGRAMS = $(example_PROGRAMS)
 am__single_tau_gun_example_exe_SOURCES_DIST =  \
@@ -108,6 +110,22 @@ transspin_pythia_tauola_exe_DEPENDENCIES =  \
 	$(prefix)/lib/libTauolaFortran.so $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
+
+am__spin_correlation_pythia_tauola_exe_SOURCES_DIST =  \
+	spin_correlation_pythia_tauola.cxx
+am_spin_correlation_pythia_tauola_exe_OBJECTS = spin_correlation_pythia_tauola.$(OBJEXT)
+spin_correlation_pythia_tauola_exe_OBJECTS =  \
+	$(am_spin_correlation_pythia_tauola_exe_OBJECTS)
+spin_correlation_pythia_tauola_exe_LDADD = $(LDADD)
+spin_correlation_pythia_tauola_exe_DEPENDENCIES =  \
+	$(prefix)/lib/libTauolaCxxInterface.so \
+	$(prefix)/lib/libTauolaFortran.so $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
+
+
+
+
 
 am__taumain_stand_alone_example_exe_SOURCES_DIST =  \
 	taumain_stand_alone_example.cxx
@@ -148,11 +166,13 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(single_tau_gun_example_exe_SOURCES) \
 	$(taumain_hepevt_example_exe_SOURCES) \
 	$(transspin_pythia_tauola_exe_SOURCES) \
+	$(spin_correlation_pythia_tauola_exe_SOURCES) \
 	$(taumain_stand_alone_example_exe_SOURCES) \
 	$(taummk_pythia_example_exe_SOURCES)
 DIST_SOURCES = $(am__single_tau_gun_example_exe_SOURCES_DIST) \
 	$(taumain_hepevt_example_exe_SOURCES) \
 	$(am__transspin_pythia_tauola_exe_SOURCES_DIST) \
+	$(am__spin_correlation_pythia_tauola_exe_SOURCES_DIST) \
 	$(am__taumain_stand_alone_example_exe_SOURCES_DIST) \
 	$(am__taummk_pythia_example_exe_SOURCES_DIST)
 ETAGS = etags
@@ -297,6 +317,7 @@ taumain_stand_alone_example_exe_SOURCES = taumain_stand_alone_example.cxx
 single_tau_gun_example_exe_SOURCES = single_tau_gun_example.cxx
 taummk_pythia_example_exe_SOURCES = taummk_pythia_example.cxx
 transspin_pythia_tauola_exe_SOURCES = transspin_pythia_tauola.cxx
+spin_correlation_pythia_tauola_exe_SOURCES = spin_correlation_pythia_tauola.cxx
 all: all-am
 
 .SUFFIXES:
@@ -383,6 +404,10 @@ taumain_hepevt_example.exe$(EXEEXT): $(taumain_hepevt_example_exe_OBJECTS) $(tau
 transspin_pythia_tauola.exe$(EXEEXT): $(transspin_pythia_tauola_exe_OBJECTS) $(transspin_pythia_tauola_exe_DEPENDENCIES) 
 	@rm -f transspin_pythia_tauola.exe$(EXEEXT)
 	$(CXXLINK) $(transspin_pythia_tauola_exe_OBJECTS) $(transspin_pythia_tauola_exe_LDADD) $(LIBS)
+spin_correlation_pythia_tauola.exe$(EXEEXT): $(spin_correlation_pythia_tauola_exe_OBJECTS) $(spin_correlation_pythia_tauola_exe_DEPENDENCIES) 
+	@rm -f spin_correlation_pythia_tauola.exe$(EXEEXT)
+	$(CXXLINK) $(spin_correlation_pythia_tauola_exe_OBJECTS) $(spin_correlation_pythia_tauola_exe_LDADD) $(LIBS)
+
 taumain_stand_alone_example.exe$(EXEEXT): $(taumain_stand_alone_example_exe_OBJECTS) $(taumain_stand_alone_example_exe_DEPENDENCIES) 
 	@rm -f taumain_stand_alone_example.exe$(EXEEXT)
 	$(CXXLINK) $(taumain_stand_alone_example_exe_OBJECTS) $(taumain_stand_alone_example_exe_LDADD) $(LIBS)
@@ -399,6 +424,7 @@ distclean-compile:
 include ./$(DEPDIR)/single_tau_gun_example.Po
 include ./$(DEPDIR)/taumain_hepevt_example.Po
 include ./$(DEPDIR)/transspin_pythia_tauola.Po
+include ./$(DEPDIR)/spin_correlation_pythia_tauola.Po
 include ./$(DEPDIR)/taumain_stand_alone_example.Po
 include ./$(DEPDIR)/taummk_pythia_example.Po
 
