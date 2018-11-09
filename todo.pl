@@ -23,7 +23,7 @@ if($ARGV[0] eq "--help" || $ARGV[0] eq ""){
     printf("\nWelcome to tauola installer, please look at the instruction below.");
     printf("\nThis code requires one input option. The syntax is: ./todo.pl [OPTION]");
     printf("\n First of all setup the environment: \n\n");
-    printf("\n./todo.pl --setup  <install>                              For example: ./todo.pl --setup  install\n");
+    printf("\n./todo.pl --setup  <install>                              For example: ./todo.pl --setup  workdir\n");
     printf("\n\nAfter this step is completed prcoceed further and  ");
     printf("\nchoose from the following options:\n");
     printf("\n./todo.pl --help                                             Prints this message");
