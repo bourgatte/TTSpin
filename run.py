@@ -2,8 +2,6 @@
 
 import os
 import argparse
-import array
-
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--output-file",help="output file prefix. [Default: %(default)s] ", action="store", default = 'TEST')
 parser.add_argument("-c", "--config-parameters",help="Configuration file:  pythia_H.conf or pythia_Z.conf   [Default: %(default)s] ",  type=str, action="store", default = 'pythia_H.conf')
