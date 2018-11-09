@@ -2,8 +2,6 @@
 
 import os
 import argparse
-import ROOT
-import math
 import array
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -15,4 +13,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cmd = './spin_correlation_pythia_tauola.exe ' + args.config_parameters     + ' ' + args.collision_type + ' ' +  args.events_number     + ' ' +  args.mixing_angle + ' ' + args.output_file
     print cmd
-    os.system(cmd) # returns the exit statu s
+    os.system(cmd) 

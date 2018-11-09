@@ -221,14 +221,6 @@ int main(int argc,char **argv){
   TH1F *M_tautau= new TH1F("M_tautau","M_{#tau#tau}, GeV",50,85,100);
 
 
-  // Program needs at least 4 parameters
-  if(argc<5)
-  {
-    cout<<endl<<"Usage: "<<argv[0]<<" <pythia_conf> <pythia_mode> <no_events> <tauola_mode> <mixing_angle>"<<endl;
-    cout<<endl<<"   eg. "<<argv[0]<<" pythia_H.conf 0 10000 4 0.7853"<<endl;
-    cout<<endl;
-    return -1;
-  }
 
   Log::SummaryAtExit();
 
@@ -254,23 +246,6 @@ int main(int argc,char **argv){
   // Initial pythia configuration
   pythia.particleData.readString("15:mayDecay = off");
 
-  /*
-    Read input parameters from console. List of parameters:
-    1. Pythia configuration filename
-    2. Are we using pp collisions? (If not - e+ e- collisions)
-    3. Number of events
-    4. Tauola decay mode (refer to documentation)
-    5. Higgs scalar-pseudoscalar mixing angle
-
-    Example where all input parameters are used:
-
-    ./taumain_pythia_example.exe pythia_H.conf 0 100000 4 0.7853
-      - use pythia_H.conf
-      - initialize using e+ e- collisions
-      - generate 100 000 events
-      - fix TAUOLA decay to channel 4 (RHO_MODE)
-      - Higgs scalar-pseudoscalar mixing angle set to 0.7853
-  */
 
   // 1. Load pythia configuration file (argv[1], from console)
   if(argc>1) pythia.readFile(argv[1]);
@@ -282,14 +257,6 @@ int main(int argc,char **argv){
   // 3. Get number of events (argv[3], from console)
   if(argc>3) NumberOfEvents=atoi(argv[3]);
 
-  // 4. Set Tauola decay mode (argv[4], from console)
-  // if(argc>4)
-  // {
-  //   Tauola::setSameParticleDecayMode(atoi(argv[4]));
-  //   Tauola::setOppositeParticleDecayMode(atoi(argv[4]));
-  // }
-
-  // 5. Set Higgs scalar-pseudoscalar mixing angle (argv[5], from console)
   if(argc>4)
   {
     Tauola::setHiggsScalarPseudoscalarMixingAngle(atof(argv[5]));

@@ -223,7 +223,8 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/; make install;"));
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
 	printf("\nInstruction:   \n    ");
-	printf(" cd $PWD/$tauoladir/tauola++/1.1.5/examples/; ./taumain_pythia_example | tee log.out;   \n\n\n");
+	printf(" cd $PWD/$tauoladir/tauola++/1.1.5/examples/; \n");
+	printf(" run: ./run.py -h   for an instruction \n\n\n");
     }
 }
 
