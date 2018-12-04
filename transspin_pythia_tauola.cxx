@@ -244,7 +244,7 @@ int main(int argc,char **argv){
 
 
   stringstream ss;
-  ss << TMath::Hash(argv[5]);
+  ss << float(TMath::Hash(argv[5]))/10000.;
   string str = ss.str();
 
   pythia.readString("Random:seed = "+str);
