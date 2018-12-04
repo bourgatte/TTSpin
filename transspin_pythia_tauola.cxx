@@ -206,14 +206,21 @@ void redPlus(TauolaParticle *plus)
 int main(int argc,char **argv){
 
  
-  TString FileName  = "TTSpin_plots_"+ TString(argv[6]) +".root";
+
+  TString path= (TString)std::getenv("PWD") +"/output/";
+  TString FileName  = path+"TTSpin_plots_"+ TString(argv[5]) +".root";
   TFile *file = new TFile(FileName,"RECREATE");
-  TH1F *phi_pipi= new TH1F("phi_pipi","#phi*_{#pi#pi}",50,0,3.14);
-  TH1F *phi_rhorho= new TH1F("phi_rhorho","#phi*_{#rho#rho}",50,0,3.14);
-  TH1F *phi_rhopi= new TH1F("phi_rhopi","#phi*_{#pi#rho}",50,0,3.14);
-  TH1F *phi_a1rho= new TH1F("phi_a1rho","#phi*_{a_{1}#rho}",50,0,3.14);
-  TH1F *phi_a1a1= new TH1F("phi_a1a1","#phi*_{a_{1}a_{1}}",50,0,3.14);
-  TH1F *phi_a1pi= new TH1F("phi_a1pi","#phi*_{a_{1}#pi}",50,0,3.14);
+  TH1F  *phi_pipi= new TH1F("phi_pipi","#phi*_{#pi#pi}",50,0,3.14);
+  TH1F  *phi_rhorho= new TH1F("phi_rhorho","#phi*_{#rho#rho}",50,0,3.14);
+  TH1F  *phi_rhopi= new TH1F("phi_rhopi","#phi*_{#pi#rho}",50,0,3.14);
+  TH1F  *phi_a1rho= new TH1F("phi_a1rho","#phi*_{a_{1}#rho}",50,0,3.14);
+  TH1F  *phi_a1a1= new TH1F("phi_a1a1","#phi*_{a_{1}a_{1}}",50,0,3.14);
+  TH1F  *phi_a1pi= new TH1F("phi_a1pi","#phi*_{a_{1}#pi}",50,0,3.14);
+ 
+
+  TH1F *pos = new TH1F("pos","pos",200,50,150);
+  TH1F *neg = new TH1F("neg","neg",200,50,150);
+
 
   TH1F *accol_pipi= new TH1F("accol_pipi","#delta*_{#pi#pi}",150,2.99,3.14);
 
@@ -231,6 +238,10 @@ int main(int argc,char **argv){
 
   // Initialisation of pythia
   Pythia pythia;
+  pythia.readString("Random:setSeed = on");
+  pythia.readString("Random:seed = 6");
+  //  pythia.readString("Random:seed = TMath::Hash(argv[1])");
+  std::cout<<" check hash "<<  TMath::Hash(argv[1]) <<std::endl;
   Event& event = pythia.event;
   
   // Pythia8 HepMC interface depends on Pythia8 version
@@ -745,7 +756,28 @@ int main(int argc,char **argv){
 	}
 	
 	
+	int tauHelicity  = Tauola::getHelPlus();
 
+
+
+	bool HelPlus=false;
+	bool HelMinus=false;
+	if(Tauola::getHelPlus() == 1 )HelMinus=true;
+	if(Tauola::getHelPlus() ==-1)HelPlus=true;
+
+	bool HelPlus2=false;
+	bool HelMinus2=false;
+	if(Tauola::getHelMinus() == 1 )HelMinus2=true;
+	if(Tauola::getHelMinus() ==-1)HelPlus2=true;
+
+
+	int HelWeightPlus = HelPlus;
+	int HelWeightMinus = HelMinus;
+
+	pos->Fill((tau1+ tau2).M(),HelWeightPlus);
+	neg->Fill((tau1+ tau2).M(),HelWeightMinus);
+
+	//	std::cout<<"+?  :  "<< HelWeightPlus <<"  -?   " <<HelWeightMinus << std::endl;
 	
 	// Run MC-TESTER on the event
 	HepMCEvent temp_event(*HepMCEvt,false);
