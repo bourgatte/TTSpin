@@ -15,6 +15,8 @@
 #include "TMatrixTSym.h"
 #include "TMath.h"
 #include "UserCodes/SCalculator.h"
+#include <string>
+#include <stdlib.h>
 //pythia header files
 #ifdef PYTHIA8180_OR_LATER
 #include "Pythia8/Pythia.h"
@@ -239,9 +241,16 @@ int main(int argc,char **argv){
   // Initialisation of pythia
   Pythia pythia;
   pythia.readString("Random:setSeed = on");
-  pythia.readString("Random:seed = 6");
+
+
+  stringstream ss;
+  ss << TMath::Hash(argv[5]);
+  string str = ss.str();
+
+  pythia.readString("Random:seed = "+str);
   //  pythia.readString("Random:seed = TMath::Hash(argv[1])");
-  std::cout<<" check hash "<<  TMath::Hash(argv[1]) <<std::endl;
+  std::cout<<" check hash "<<  TMath::Hash(argv[5]) <<std::endl;
+  std::cout<<"name    "<< argv[5]<<std::endl;
   Event& event = pythia.event;
   
   // Pythia8 HepMC interface depends on Pythia8 version
