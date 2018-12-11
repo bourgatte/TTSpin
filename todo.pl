@@ -15,6 +15,10 @@ if($UserID eq "vcherepa"){
     $UserIDCern="cherepan";
 }
 
+if($UserID eq "gbourgat"){
+    $UserIDCern="gbourgat";
+}
+
 $PWD=getcwd;
 
 #printf("\n ---> Your user ID is:   $UserID \n");
