@@ -152,6 +152,7 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("cp spin_correlation_pythia_tauola.cxx  $PWD/$tauoladir/tauola++/1.1.5/examples;"));
 	system(sprintf("cp spin_correlation_pythia_tauola.Po  $PWD/$tauoladir/tauola++/1.1.5/examples/.deps/;"));
 	system(sprintf("cp run.py  $PWD/$tauoladir/tauola++/1.1.5/examples/;"));
+	system(sprintf("cp run_trans.py  $PWD/$tauoladir/tauola++/1.1.5/examples/;"));
 
 	system(sprintf("cd $PWD/$tauoladir/tauola++/1.1.5/examples; make"));
 
@@ -166,8 +167,9 @@ for($l=0;$l<$numArgs; $l++){
 	system(sprintf("echo \"export workdir=$s1_par     \">> qsub_submit.sh"));
 	system(sprintf("echo \"export HOME=$s1_par     \">> qsub_submit.sh"));
 	system(sprintf("echo \"cd $PWD/$tauoladir/tauola++/1.1.5/examples/;    \">> qsub_submit.sh"));
-	system(sprintf("echo \"source $PWD/Install_TauolaEnvironment_$time   \">> qsub_submit.sh"));
-	system(sprintf("echo \"$PWD/$tauoladir/tauola++/1.1.5/examples/transspin_pythia_tauola.exe pythia_H.conf 1 100000 3 1.57079632679489656e+00 $SP  \">> qsub_submit.sh"));
+	system(sprintf("echo \"source $PWD/install_env_$time   \">> qsub_submit.sh"));
+#	system(sprintf("echo \"$PWD/$tauoladir/tauola++/1.1.5/examples/transspin_pythia_tauola.exe pythia_H.conf 1 100000 3 1.57079632679489656e+00 $SP  \">> qsub_submit.sh"));
+	system(sprintf("echo \"$PWD/$tauoladir/tauola++/1.1.5/examples/run_trans.py -c pythia_Z.conf  -t 1 -n 100000 -o $SP  \">> qsub_submit.sh"));
 	system(sprintf("echo \"echo 'Completed Job'    \">> qsub_submit.sh"));
 	system(sprintf("mv qsub_submit.sh $PWD/$tauoladir/tauola++/1.1.5/examples/; "));
 
